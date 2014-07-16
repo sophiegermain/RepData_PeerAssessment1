@@ -5,7 +5,6 @@ Tracking personal movement with activity monitoring devices
 
 It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
-This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 ## Data
 
@@ -15,6 +14,7 @@ First of all we read in the data from the csv file (located in the working direc
 ```{r readdata, echo=TRUE}
 monitoring <- read.csv("activity.csv", header=TRUE, na.strings=c("NA"), colClasses =c("numeric","character","numeric"))
 monitoring$date <- as.Date(monitoring$date,"%Y-%m-%d")
+options(scipen=999) #no scientific notation
 ```
 
 ## What is mean total number of steps taken per day?
@@ -40,19 +40,16 @@ The mean of the total number of steps is `r mean` and the median is `r median`, 
 
 We create a line chart of the average number of steps taken in each 5-minute interval (averaged across all days). 
 
-```{r fig.width=7, fig.height=6}
+```{r timeseries,fig.width=7, fig.height=6}
 averagesteps <- tapply(monitoring$steps,monitoring$interval,mean,na.rm = TRUE)
-intervals <- seq(0, 55, by=5)
-for (i in 1:23) {
- intervals <- c(intervals,seq(i*100,i*100+55,by=5)) 
-}
-plot(averagesteps ~ intervals, monitoring,xlab="5-minute intervals",type="l", ylab="Average number of steps taken")
+plot(row.names(averagesteps),averagesteps, xlab="5-minute intervals",type="l", ylab="Average number of steps taken")
 ```
 
 ```{r results="hide"}
 max <- max(averagesteps)
-top <- intervals[which(averagesteps == max(averagesteps))]
+top <- names(which(averagesteps == max(averagesteps)))
 ```
+
 The 5-minute interval which contains the most steps on average across all days is interval `r top` with an average of `r max` steps.
 
 ## Imputing missing values
@@ -76,9 +73,10 @@ To counteract a potential bias of results, we will fill in the missing values in
 monitoring2 <- monitoring
 for (i in 1:nrow(monitoring2)) {
  if (is.na(monitoring2$steps[i])){
-   monitoring2$steps[i]<-averagesteps[which(intervals==monitoring2$interval[i])]
+   monitoring2$steps[i]<-averagesteps[which(row.names(averagesteps)==monitoring2$interval[i])]
  }
 }
+
 ```
 
 Now we repeat the exploratory analysis we did in the beginning, to see if the results differ.
@@ -90,20 +88,33 @@ hist(totalsteps2,xlab="Steps taken by day",ylab="Frequency",main="Histogram of t
 ```
 
 ```{r mean2, results="hide"}
-mean2 <- mean(totalsteps2,na.rm = TRUE)
-median2 <- median(totalsteps2,na.rm = TRUE)
+mean2 <- mean(totalsteps2)
+median2 <- median(totalsteps2)
 ```
 
-The histogram has a more symmetric distribution compared to the original one. The mean of the total number of steps is now `r mean2` and the median is `r median2`. The equality of the mean and median again indicated symmetry of the distribution. This suggests that the initial asymmetry was caused by missing values, as many days had an understated number of total steps.
+The histogram has a more symmetric distribution compared to the original one. The mean of the total number of steps is now `r mean2` and the median is `r median2`. The equality of the mean and median again indicates symmetry of the distribution. This suggests that the initial asymmetry was caused by missing values, as many days had an understated number of total steps.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+First, we create a new column in the datatable which indicates whether a day is a weekday or a weekend day.
 
-### Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r days}
+monitoring2$daytype <- factor("weekday", levels=c("weekday","weekend"))
+monitoring2$daytype[which(weekdays(monitoring2$date)=="Sunday")] <- "weekend"
+monitoring2$daytype[which(weekdays(monitoring2$date)=="Saturday")] <- "weekend"
+```
 
-### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+Next, we create a panel plot containing time series of the average numbers steps taken in each interval, averaged across either all weekdays or all weekend days. 
 
 
-Your plot will look different from the one above because you will be using the activity monitor data. Note that the above plot was made using the lattice system but you can make the same version of the plot using any plotting system you choose.
+```{r panel, fig.width=7, fig.height=7, warning=FALSE}
+library(lattice)
+library(datasets)
+library(plyr)
+averagesteps2  <-ddply(monitoring2, .(daytype, interval), summarize, steps = mean(steps))
+xyplot(steps ~ interval | daytype, data = averagesteps2, type="l",layout = c(1,2),xlab="Intervals",ylab="Average number of steps")
+```
+
+On weekdays, the highest number of steps is more concentrated in certain intervals, while on weekend days, steps are more equally spread throughout the day. There is also a longer step-less period on weekend days, indicating a longer night's sleep.
+
