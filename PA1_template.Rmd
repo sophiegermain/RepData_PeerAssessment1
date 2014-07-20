@@ -23,7 +23,7 @@ First of all, to understand the distribution of the number of steps the subject 
 
 Note: we are ignoring the missing values in the dataset.
 
-```{r fig.width=7, fig.height=6}
+```{r histogram1, fig.width=7, fig.height=6}
 totalsteps <- tapply(monitoring$steps,monitoring$date,sum,na.rm = TRUE)
 hist(totalsteps,xlab="Steps taken by day",ylab="Frequency",main="Histogram of total number of steps taken each day")
 ```
@@ -82,7 +82,7 @@ for (i in 1:nrow(monitoring2)) {
 Now we repeat the exploratory analysis we did in the beginning, to see if the results differ.
 
 
-```{r fig.width=7, fig.height=6}
+```{r histogram2, fig.width=7, fig.height=6}
 totalsteps2 <- tapply(monitoring2$steps,monitoring2$date,sum,na.rm = TRUE)
 hist(totalsteps2,xlab="Steps taken by day",ylab="Frequency",main="Histogram of total number of steps taken each day")
 ```

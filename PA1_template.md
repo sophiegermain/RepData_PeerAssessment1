@@ -30,7 +30,7 @@ totalsteps <- tapply(monitoring$steps,monitoring$date,sum,na.rm = TRUE)
 hist(totalsteps,xlab="Steps taken by day",ylab="Frequency",main="Histogram of total number of steps taken each day")
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
+![plot of chunk histogram1](figure/histogram1.png) 
 
 
 ```r
@@ -106,7 +106,7 @@ totalsteps2 <- tapply(monitoring2$steps,monitoring2$date,sum,na.rm = TRUE)
 hist(totalsteps2,xlab="Steps taken by day",ylab="Frequency",main="Histogram of total number of steps taken each day")
 ```
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+![plot of chunk histogram2](figure/histogram2.png) 
 
 
 ```r
